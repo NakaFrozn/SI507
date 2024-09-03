@@ -92,21 +92,17 @@ def make_move(player, board) -> None:
         the board is modified in place when a valid move is entered
     """
     # TODO: Implement function
-    if player == 1:
-        print("This is X's move")
-    else:
-        print("This is O's move")
     while True:
-        move = input("Please enter a number 1-9: ")
+        move = input(f"{player_name(player)}'s move: ")
         if move.isdigit() and 1 <= int(move) <= 9:
             move = int(move) - 1
             if board[move] == 0:
                 board[move] = player
                 break
             else:
-                print("This place is already occupied, please try again")
+                print("That space is occupied, try another.")
         else:
-            print("Invalid input, please enter a number between 1 to 9")
+            print("Enter a number between 1 and 9.")
 
 
 def check_win_horizontal(board) -> int:
@@ -257,8 +253,6 @@ def main() -> int:
         winner = check_win(board)
         player = next_player(player)
         moves_left -= 1
-    print("The winner is: ", player_name(winner))
-    display_board(board)
     return winner
 
 
@@ -269,4 +263,5 @@ def main() -> int:
 # you are correctly identifying the winner, but you will not be graded on that.
 
 if __name__ == "__main__":
-    main()
+    winner = main()
+    print(f"Game Over! {player_name(winner)} wins!")
