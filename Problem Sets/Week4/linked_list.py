@@ -109,7 +109,12 @@ class LinkedList:
         any or None
             The data at the specified index or None if index is invalid.
         """
-        pass
+        if index < 0 or index >= self.size:
+            return None
+        curr = self.dummyHead.next
+        for i in range(index):
+            curr = curr.next
+        return curr.data
 
 
     def appendLeft(self, data) -> None:
@@ -129,7 +134,12 @@ class LinkedList:
         -------
         None
         """
-        pass
+        newNode = Node(data)
+        newNode.next = self.dummyHead.next
+        newNode.prev = self.dummyHead
+        self.dummyHead.next.prev = newNode
+        self.dummyHead.next = newNode
+        self.size += 1
 
 
     def append(self, data) -> None:
@@ -148,7 +158,12 @@ class LinkedList:
         -------
         None
         """
-        pass
+        newNode = Node(data)
+        newNode.next = self.dummyTail
+        newNode.prev = self.dummyTail.prev
+        self.dummyTail.prev.next = newNode
+        self.dummyTail.prev = newNode
+        self.size += 1
 
     
     def popLeft(self) -> Any | None:
@@ -166,7 +181,13 @@ class LinkedList:
         None 
             If the linked list is empty.
         """
-        pass
+        if self.size == 0:
+            return None
+        data = self.dummyHead.next.data
+        self.dummyHead.next = self.dummyHead.next.next
+        self.dummyHead.next.prev = self.dummyHead
+        self.size -= 1
+        return data
 
 
     def pop(self) -> Any | None:
@@ -183,7 +204,15 @@ class LinkedList:
         None 
             If the linked list is empty.
         """
-        pass
+        if self.size > 0:
+            data = self.dummyTail.prev.data
+            self.dummyTail.prev.prev.next = self.dummyTail
+            self.dummyTail.prev = self.dummyTail.prev.prev
+            self.size -= 1
+            return data
+        else:
+            return None
+        
             
 
     def addAtIndex(self, index: int, data: int) -> bool:
@@ -204,7 +233,18 @@ class LinkedList:
         bool
             True if the addition was successful, False otherwise.
         """
-        pass
+        if index < 0 or index > self.size:
+            return False
+        newNode = Node(data)
+        curr = self.dummyHead
+        for _ in range(index):
+            curr = curr.next
+        newNode.next = curr.next
+        newNode.prev = curr
+        newNode.prev.next = newNode
+        newNode.next.prev = newNode
+        self.size += 1
+        return True
 
 
     def deleteAtIndex(self, index: int) -> bool:
@@ -225,7 +265,15 @@ class LinkedList:
         bool
             True if the addition was successful, False otherwise.
         """
-        pass
+        if index < 0 or index >= self.size:
+            return False
+        curr = self.dummyHead
+        for _ in range(index):
+            curr = curr.next
+        curr.next = curr.next.next
+        curr.next.prev = curr
+        self.size -= 1
+        return True
 
 
     def printFromFront(self) -> None:
@@ -240,7 +288,14 @@ class LinkedList:
         secondElement 
         ...
         """
-        pass
+        if self.size == 0:
+            print("Link list is empty.")
+            return None
+        curr = self.dummyHead.next
+        while curr != self.dummyTail:
+            print(curr.data)
+            curr = curr.next
+        return None
 
 
     def printFromBack(self) -> None:
@@ -249,7 +304,14 @@ class LinkedList:
         If the linked list is empty, print exactly this string "Link list is empty."
         Follow the same format of printFromFront()
         """
-        pass
+        if self.size == 0:
+            print("Link list is empty.")
+            return None
+        curr = self.dummyTail.prev
+        while curr != self.dummyHead:
+            print(curr.data)
+            curr = curr.prev
+        return None
 
 
     def _isNodeUnbound(self,node) -> bool:
@@ -277,7 +339,7 @@ class LinkedList:
         check if the next attribute of the node's previous node is 
         the node.
         """
-        pass
+        return node.prev.next != node
 
     
     def getFront(self) -> Any | None:
@@ -289,7 +351,18 @@ class LinkedList:
         data or None
             The data of the first node in the list, or None if the list is empty.
         """
-        pass
+        return self.dummyHead.next.data if self.size > 0 else None
+    
+    def getFrontNode(self) -> Node | None:
+        """
+        Returns the first non dummy node in the linked list.
+
+        Returns
+        -------
+        Node or None
+            The first node in the list, or None if the list is empty.
+        """
+        return self.dummyHead.next if self.size > 0 else None
 
     def getBack(self) -> Any | None:
         """
@@ -300,7 +373,18 @@ class LinkedList:
         data or None
             The data of the last node in the list, or None if the list is empty.
         """
-        pass
+        return self.dummyTail.prev.data if self.size > 0 else None
+    
+    def getBackNode(self) -> Node | None:
+        """
+        Returns the last non dummy node in the linked list.
+
+        Returns
+        -------
+        Node or None
+            The last node in the list, or None if the list is empty.
+        """
+        return self.dummyTail.prev if self.size > 0 else None
     
     def getSize(self) -> int:
         """
@@ -314,18 +398,34 @@ class LinkedList:
         int
             The number of elements in linked list.
         """
-        pass
+        return self.size
+    
+    def isDummy(self, Node) -> bool:
+        """
+        Check if the given node is a dummy node.
+
+        Parameters
+        ----------
+        Node : Node
+            The node to check.
+
+        Returns
+        -------
+        bool
+            True if the node is a dummy node, False otherwise.
+        """
+        return Node.data is None
         
 """
 ############################## Homework linked_list ##############################
 
-% Student Name:
+% Student Name: Zhonghan Xie
 
-% Student Unique Name:
+% Student Unique Name: jonasxie
 
-% Lab Section 00X: 
+% Lab Section 00X: 104
 
-% I worked with the following classmates: 
+% I worked with the following classmates: N/A
 
 %%% Please fill in the first 4 lines of this file with the appropriate information.
 """

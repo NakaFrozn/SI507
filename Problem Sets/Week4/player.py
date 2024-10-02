@@ -1,5 +1,5 @@
 from media import Media, Track, Movie
-from linked_list import LinkedList
+from linked_list import LinkedList, Node
 import json
 class Player:
     """
@@ -20,6 +20,8 @@ class Player:
         """
         Initializes the Player with an empty playlist and None as currentMediaNode.
         """
+        self.playlist = LinkedList()
+        self.currentMediaNode = None
         
 
     def addMedia(self, media) -> None:
@@ -33,14 +35,16 @@ class Player:
         media : Media | Track | Movie 
             The media to add to the playlist.
         """
-        
+        self.playlist.append(media)
+        if self.currentMediaNode is None:
+            self.currentMediaNode = self.playlist.getFrontNode()
 
     def removeMedia(self, index) -> bool:
         """
         Removes a media from the playlist based on its index.
         You can assume the only invalid input is invalid index.
         Set the currentMediaNode to its next, if currentMediaNode is removed,
-        and remeber using _isNodeUnbound(self.currentMediaNode) to check if a link is broken.
+        and remember using _isNodeUnbound(self.currentMediaNode) to check if a link is broken.
 
         Parameters
         ----------
@@ -52,7 +56,11 @@ class Player:
         bool
             True if the media was successfully removed, False otherwise.
         """
-        
+        if self.playlist.deleteAtIndex(index):
+            if self.playlist._isNodeUnbound(self.currentMediaNode):
+                self.currentMediaNode = self.currentMediaNode.next
+            return True
+        return False
 
     def next(self) -> bool:
         """
@@ -64,6 +72,10 @@ class Player:
         bool
             True if the player successfully moved to the next media, False otherwise.
         """
+        if self.currentMediaNode.data is not None and self.currentMediaNode.next.data is not None:
+            self.currentMediaNode = self.currentMediaNode.next
+            return True
+        return False
         
 
     def prev(self) -> bool:
@@ -76,6 +88,10 @@ class Player:
         bool
             True if the player successfully moved to the previous media, False otherwise.
         """
+        if self.currentMediaNode is not None and self.currentMediaNode.prev.data is not None:
+            self.currentMediaNode = self.currentMediaNode.prev
+            return True
+        return False
         
 
     def resetCurrentMediaNode(self) -> bool:
@@ -88,36 +104,57 @@ class Player:
         bool
             True if the current media was successfully reset, False otherwise.
         """
+        if self.playlist.size > 0:
+            self.currentMediaNode = self.playlist.getFrontNode()
+            return True
+        return False
         
 
     def play(self) -> None:
         """
         Plays the current media in the playlist. 
         Call the play method of the media instance.
-        Remeber currentMediaNode is a node not a media, but its data is the actual
+        Remember currentMediaNode is a node not a media, but its data is the actual
         media. If the currentMediaNode is None or its data is None, 
         print "The current media is empty.". 
         """
-        
+        if self.currentMediaNode is None or self.currentMediaNode.data is None:
+            print("The current media is empty.")
+        else:
+            self.currentMediaNode.data.play()
+
 
     def playForward(self) -> None:
         """
         Plays all the media in the playlist from front to the end,
         by iterating the linked list.  
-        Remeber each media information should take one line. (follow the same
+        Remember each media information should take one line. (follow the same
         format in linked list)
         If the playlist is empty, print "Playlist is empty.". 
         """
-        
+        if self.playlist.size == 0:
+            print("Playlist is empty.")
+        else:
+            self.currentMediaNode = self.playlist.getFrontNode()
+            self.play()
+            while self.next():
+                self.play()
 
     def playBackward(self) -> None:
         """
         Plays all the media in the playlist from the back to front,
         by iterating the linked list.  
-        Remeber each media information should take one line. (follow the same
+        Remember each media information should take one line. (follow the same
         format in linked list)
         If the playlist is empty, print this string "Playlist is empty.". 
         """
+        if self.playlist.size == 0:
+            print("Playlist is empty.")
+        else:
+            self.currentMediaNode = self.playlist.getBackNode()
+            self.play()
+            while self.prev():
+                self.play()
         
 
     def loadFromJson(self, fileName) -> None:
@@ -133,10 +170,46 @@ class Player:
         Pay attention the name of the key in each json object. 
         Set the currentMediaNode to the first media in the playlist, 
         if there is at least one media in the playlist.
-        Remeber to use the dictionary get method. 
+        Remember to use the dictionary get method. 
 
         Parameters
         ----------
         filename : str
             The name of the JSON file to load media from.
         """
+
+        with open(fileName) as f:
+            data = json.load(f)
+        for media in data:
+            if media.get('wrapperType') == "track":
+                if media.get('kind') == "song" or media.get('kind') == "podcast":
+                    self.addMedia(Track(media.get('trackName'), 
+                                        media.get('artistName'),
+                                        media.get('trackViewUrl'),
+                                        media.get('releaseDate'), 
+                                        media.get('collectionName'), 
+                                        media.get('primaryGenreName'), 
+                                        media.get('trackTimeMillis')))
+                elif media.get('kind') == "feature-movie" or media.get('kind') == "tv-episode":
+                    if 'trackTimeMillis' in media:
+                        self.addMedia(Movie(media.get('trackName'), 
+                                        media.get('artistName'),
+                                        media.get('releaseDate'), 
+                                        media.get('trackViewUrl'), 
+                                        media.get('contentAdvisoryRating'),
+                                        media.get('trackTimeMillis')))
+                    else:
+                        self.addMedia(Movie(media.get('trackName'), 
+                                        media.get('artistName'),
+                                        media.get('releaseDate'), 
+                                        media.get('trackViewUrl'), 
+                                        media.get('contentAdvisoryRating'), 
+                                        media.get('trackTimeMillis')))
+            else:
+                self.addMedia(Media(media.get('trackName'), 
+                                    media.get('artistName'),
+                                    media.get('releaseDate'), 
+                                    media.get('trackViewUrl')))
+        if self.playlist.size > 0:
+            self.resetCurrentMediaNode()
+        
