@@ -1,4 +1,4 @@
-# from linked_list import LinkedList
+from linked_list import LinkedList
 from typing import Any
 
 class Queue:
@@ -12,6 +12,8 @@ class Queue:
         """
         Initialize a new Queue instance.
         """
+        self.queue = LinkedList()
+
 
     def enqueue(self, data) -> None:
         """
@@ -22,6 +24,7 @@ class Queue:
         data : Any
             The data to be added to the queue.
         """
+        self.queue.append(data)
 
     def dequeue(self) -> Any | None:
         """
@@ -33,6 +36,8 @@ class Queue:
             The data from the front of the queue, or None if the queue is empty.
         """
 
+        return self.queue.popLeft()
+
     def getFront(self) -> Any | None:
         """
         Return the front element of the queue without removing it.
@@ -43,6 +48,8 @@ class Queue:
             The data from the front of the queue, or None if the queue is empty.
         """
 
+        return self.queue.getFront()
+
     def isEmpty(self) -> bool:
         """
         Check if the queue is empty.
@@ -52,6 +59,8 @@ class Queue:
         bool
             True if the queue is empty, False otherwise.
         """
+
+        return self.queue.getSize() == 0
 
 if __name__ == "__main__":
     pass

@@ -1,4 +1,4 @@
-# from linked_list import LinkedList
+from linked_list import LinkedList
 from typing import Any
 
 class Stack:
@@ -12,6 +12,7 @@ class Stack:
         """
         Initialize a new Stack instance.
         """
+        self.stack = LinkedList()
 
     def push(self, data) -> None:
         """
@@ -23,6 +24,8 @@ class Stack:
             The data to be added to the stack.
         """
 
+        self.stack.append(data)
+
     def pop(self) -> Any | None:
         """
         Remove and return the top element of the stack.
@@ -32,6 +35,8 @@ class Stack:
         Any or None
             The data from the top of the stack, or None if the stack is empty.
         """
+
+        return self.stack.pop()
 
     def peek(self) -> Any | None:
         """
@@ -43,6 +48,8 @@ class Stack:
             The data from the top of the stack, or None if the stack is empty.
         """
 
+        return self.stack.getBack()
+
     def isEmpty(self) -> bool:
         """
         Check if the stack is empty.
@@ -52,6 +59,7 @@ class Stack:
         bool
             True if the stack is empty, False otherwise.
         """
+        return self.stack.getSize() == 0
 
 
 if __name__ == "__main__":
