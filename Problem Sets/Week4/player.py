@@ -183,8 +183,8 @@ class Player:
                         Track(
                             media.get("trackName"),
                             media.get("artistName"),
-                            media.get("trackViewUrl"),
                             media.get("releaseDate"),
+                            media.get("trackViewUrl"),
                             media.get("collectionName"),
                             media.get("primaryGenreName"),
                             media.get("trackTimeMillis"),
@@ -203,12 +203,23 @@ class Player:
                         )
                     )
                     continue
+                else:
+                    self.addMedia(
+                        Media(
+                            media.get("trackName"),
+                            media.get("artistName"),
+                            media.get("releaseDate"),
+                            media.get("trackViewUrl"),
+                        )
+                    )
+                    continue
+            else:
                 self.addMedia(
                     Media(
-                        media.get("trackName"),
+                        media.get("collectionName"),
                         media.get("artistName"),
                         media.get("releaseDate"),
-                        media.get("trackViewUrl"),
+                        media.get("collectionViewUrl"),
                     )
                 )
         if self.playlist.size > 0:
