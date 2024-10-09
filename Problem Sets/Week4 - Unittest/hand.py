@@ -25,7 +25,7 @@ class Hand:
         
 
         '''
-        pass 
+        self.cards = init_cards
 
 
     def add_card(self, card) -> None:
@@ -53,7 +53,10 @@ class Hand:
         None
 
         ''' 
-        pass
+        for own_card in self.cards:
+            if own_card.rank == card.rank and own_card.suit == card.suit:
+                return None
+        self.cards.append(card)
 
 
     def remove_card(self, card)-> Card | None:
@@ -71,8 +74,11 @@ class Hand:
         the removed card instance, or None if the card was not in the Hand
 
         '''
-        pass
-
+        for own_card in self.cards:
+            if own_card.rank == card.rank and own_card.suit == card.suit:
+                self.cards.remove(own_card)
+                return own_card
+        return None
 
     def draw(self, deck) -> None:
         '''
@@ -90,7 +96,7 @@ class Hand:
         None
 
         '''
-        pass
+        self.add_card(deck.deal_card())
     
     def remove_pairs(self) -> None:
         '''
@@ -107,4 +113,21 @@ class Hand:
         None
 
         '''
-        pass
+        card_count = {}
+        for card in self.cards:
+            if card_count.get(card.rank) == None:
+                card_count[card.rank] = 1
+            else:
+                card_count[card.rank] = card_count.get(card.rank) + 1
+        
+        for rank, count in card_count.items():
+            if count == 2:
+                card_remove = [card for card in self.cards if card.rank == rank]
+            if count == 3:
+                card_remove = [card for card in self.cards if card.rank == rank][:2]
+            if count == 4:
+                card_remove = [card for card in self.cards if card.rank == rank]
+            for card in card_remove:
+                self.remove_card(card)
+        return None
+
