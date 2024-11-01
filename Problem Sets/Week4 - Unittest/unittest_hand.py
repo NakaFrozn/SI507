@@ -37,3 +37,20 @@ class TestHand(TestCase):
         card2 = self.hand.remove_card(self.hand.cards[0])
         self.assertEqual(card2.rank, 12) # check another popped card is correct
         self.assertEqual(card2.suit, 3)
+
+    def testRemovePairs(self):
+        for i in range(4):
+            for suit in range(i+1):
+                self.hand.add_card(Card(suit, i+1))
+        ##print_hand(self.hand.cards)
+        self.hand.remove_pairs()
+        self.assertEqual(len(self.hand.cards), 2) # check if pairs are removed, keeping ace and one of the three suit.
+        ##print_hand(self.hand.cards)
+        self.assertEqual(self.hand.cards[0].rank, 1)
+        self.assertEqual(self.hand.cards[0].suit, 0)
+        self.assertEqual(self.hand.cards[1].rank, 3)
+        self.assertEqual(self.hand.cards[1].suit, 2)
+
+
+if __name__ == '__main__':
+    unittest.main()
