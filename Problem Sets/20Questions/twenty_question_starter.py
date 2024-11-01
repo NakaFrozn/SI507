@@ -32,6 +32,9 @@ class TwentyQuestions:
             True if the input is an affirmative response ('y', 'yes', 'yup', 'sure'), else False.
         """
 
+        affirmative = ["y", "yes", "yup", "sure"]
+        return userIn.strip().lower() in affirmative
+
     def checkIfLeaf(self, curNode) -> bool:
         """
         Determine if the given node is a leaf node.
@@ -46,6 +49,8 @@ class TwentyQuestions:
         bool
             True if the node is a leaf (both children are None), else False.
         """
+
+        return (curNode[1] is None and curNode[2] is None)
 
     def simplePlay(self, curNode) -> bool:
         """
@@ -239,13 +244,13 @@ class TwentyQuestions:
 """
 ############################## Homework 20questions ##############################
 
-% Student Name:
+% Student Name: Zhonghan Xie
 
-% Student Unique Name:
+% Student Unique Name: jonasxie
 
-% Lab Section 00X: 
+% Lab Section 00X:  004
 
-% I worked with the following classmates: 
+% I worked with the following classmates: NA
 
 %%% Please fill in the first 4 lines of this file with the appropriate information.
 """
