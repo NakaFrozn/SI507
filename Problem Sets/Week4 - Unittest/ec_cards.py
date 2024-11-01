@@ -165,6 +165,7 @@ class Hand:
                 card_count[card.rank] = card_count.get(card.rank) + 1
         
         for rank, count in card_count.items():
+            card_remove = []
             if count == 2:
                 card_remove = [card for card in self.cards if card.rank == rank]
             if count == 3:
@@ -243,10 +244,9 @@ class Deck:
                 self.cards.append(card)
  
     def deal_hand(self, hand_size):
-        '''removes and returns hand_size cards from the Deck
-        
-        self.cards is modified in place. Deck size will be reduced
-        by hand_size
+        '''Removes and returns hand_size cards from the Deck self.cards is modified in place. 
+        Deck size will be reduced by hand_size
+
         Parameters  
         -------------------
         hand_size: int
@@ -265,14 +265,14 @@ class Deck:
         '''Deal cards to a given number of hands and cards per hand.
         
         Parameters
-        -----------
+        ---------------
         numHand: int
             The number of hands to deal.
         numCard: int
             The number of cards per hand. The default is -1, which means all cards are dealt.
         
         Returns
-        --------
+        -----------
         list
             A list of hands with the given number of cards.
         '''
@@ -282,9 +282,9 @@ class Deck:
             numCard = len(self.cards) // numHand
         for _ in range(numHand):
             if len(self.cards) >= numCard:
-                hands.append(self.deal_hand(numCard))
+                hands.append(Hand(self.deal_hand(numCard)))
             else:
-                hands.append(self.deal_hand(len(self.cards)))
+                hands.append(Hand(self.deal_hand(len(self.cards))))
         return hands
         
 
@@ -307,3 +307,24 @@ def print_hand(hand):
         hand_str += r + "of" + s + ' / '
     print(hand_str)
 
+class TestDealHand(unittest.TestCase):
+    def setUp(self) -> None:
+        self.deck = Deck()
+    
+    def testDealHandAll(self):
+        '''Test dealing all cards to 4 hands, each hand should have 13 cards'''
+        hands = self.deck.deal(4, -1)
+        self.assertEqual(len(hands), 4)
+        self.assertEqual(len(hands[0].cards), 13)
+        self.assertEqual(len(hands[1].cards), 13)
+        self.assertEqual(len(hands[2].cards), 13)
+        self.assertEqual(len(hands[3].cards), 13)
+        
+    def testDealHandNotEnough(self):
+        '''Test dealing 14 cards to 4 hands, each hand should have 14 cards except the last hand'''
+        hands = self.deck.deal(4, 14)
+        self.assertEqual(len(hands), 4)
+        self.assertEqual(len(hands[0].cards), 14)
+        self.assertEqual(len(hands[1].cards), 14)
+        self.assertEqual(len(hands[2].cards), 14)
+        self.assertEqual(len(hands[3].cards), 10)
