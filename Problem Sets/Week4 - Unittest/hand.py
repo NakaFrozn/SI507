@@ -121,6 +121,7 @@ class Hand:
                 card_count[card.rank] = card_count.get(card.rank) + 1
         
         for rank, count in card_count.items():
+            card_remove = []
             if count == 2:
                 card_remove = [card for card in self.cards if card.rank == rank]
             if count == 3:
