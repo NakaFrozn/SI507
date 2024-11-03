@@ -1,0 +1,10 @@
+Internal node
+Is it bigger than a breadbox?
+Leaf
+an elephant
+Internal node
+Is it stationery?
+Leaf
+a pen
+Leaf
+a mouse
