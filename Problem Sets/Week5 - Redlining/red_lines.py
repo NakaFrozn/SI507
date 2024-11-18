@@ -1,20 +1,13 @@
-from xml.dom.expatbuilder import FILTER_ACCEPT
 import numpy as np
 import json
 import os
 import random
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
-from regex import F
 import requests
-import time
-from tqdm import tqdm
-import csv
 import pandas as pd
 import re
 from collections import Counter
-from nltk.corpus import stopwords
-import string
 
 random.seed(17)
 
@@ -223,7 +216,7 @@ class RedLines:
         """
 
         api = "https://geo.fcc.gov/api/census/area"
-        for district in tqdm(self.districts, desc="Fetching Census"):
+        for district in self.districts:
             lat = district.randomLat
             lon = district.randomLong
             params = {"lat": lat, "lon": lon, "censusYear": "2010", "format": "json"}
@@ -232,7 +225,7 @@ class RedLines:
             while True:
                 if response.status_code == 200:
                     data = response.json()
-                    district.censusTract = data["results"][0]["block_fips"][:11]
+                    district.censusTract = data["results"][0]["block_fips"][2:11]
                     census.append(data)
                     break
                 else:
@@ -267,7 +260,6 @@ class RedLines:
                     break
                 else:
                     print(response.status_code)
-                    time.sleep(5)
             
             data = pd.DataFrame(response_data[1:], columns=response_data[0])
             data['tract_id'] = data['state'] + data['county'] + data['tract']
@@ -401,11 +393,6 @@ class RedLines:
         """
         # List of filter, stop words, punctuation, and numbers
         filter_words = set(["the", "of", "and", "in", "to", "a", "is", "for", "on", "that"])
-        stop_words = set(stopwords.words('english'))
-        punctuations = string.punctuation
-
-        # Combine two lists
-        filter_words = filter_words.union(stop_words)
 
         # Store the words for each grade
         words = {grade:[] for grade in ['A', 'B', 'C', 'D']}
@@ -486,7 +473,6 @@ class RedLines:
         Important:
         If you do the extra credit, you need to edit the __init__ of DetroitDistrict adding another arg "percent" with
         default value to be None. Not doing so might cause the load cache method to fail if you use the ** operator in load cache.
-        https://api.census.gov/data/2018/acs/acs5?get=B02001_001E&for=tract:26163550700&in=state:26&key=bff2ebd794e77fac281f258fe892bd1e36fe481b
 
 
         Attribute
