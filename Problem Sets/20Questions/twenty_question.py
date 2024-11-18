@@ -1,3 +1,8 @@
+# from lzma import is_check_supported
+# from tkinter import YES
+# from xarray import corr
+
+
 class TwentyQuestions:
     def __init__(self):
         """
@@ -54,7 +59,7 @@ class TwentyQuestions:
 
     def simplePlay(self, curNode) -> bool:
         """
-        Conduct a simple playthrough of the game using the current node.
+        Conduct a simple play through of the game using the current node.
 
         Parameters
         ----------
@@ -66,6 +71,16 @@ class TwentyQuestions:
         bool
             True if the player successfully guesses the item, else False.
         """
+        if self.checkIfLeaf(curNode):
+            print(f"Is it {curNode[0]}?")
+            return self.inputChecker(input())
+        else:
+            print(curNode[0])
+            answer = input()
+            if self.inputChecker(answer):
+                return self.simplePlay(curNode[1])
+            else:
+                return self.simplePlay(curNode[2])
 
     def createNode(self, userQuestion: str, userAnswer: str, isCorrectForQues: bool, curNode: tuple) -> tuple:
         """
@@ -93,6 +108,11 @@ class TwentyQuestions:
             The new node created with the user's question and answer 
             and curNode
         """
+            
+        if isCorrectForQues:
+            return (userQuestion, (userAnswer, None, None), curNode)
+        else:
+            return (userQuestion, curNode, (userAnswer, None, None))
 
     def playLeaf(self, curNode) -> tuple:
         """
@@ -125,6 +145,18 @@ class TwentyQuestions:
         aspect of the game, enabling the tree to expand with more nuanced questions and answers based on 
         player feedback.
         """
+        print(f"Is it {curNode[0]}?")
+        if not self.inputChecker(input()):
+            print("What should be the correct answer?")
+            user_answer = input().strip()
+            print("What question would distinguish your answer from the incorrect guess?")
+            user_question = input()
+            print(f"Is {user_answer} the correct answer for {user_question}? (Yes/No)")
+            is_correct = self.inputChecker(input())
+            return self.createNode(user_question, user_answer, is_correct, curNode)
+        else:
+            return curNode
+
 
 
     def play(self, curNode) -> tuple:
@@ -141,6 +173,14 @@ class TwentyQuestions:
         tuple
             The updated tree after playing from the given node.
         """
+        if self.checkIfLeaf(curNode):
+            return self.playLeaf(curNode)
+        else:
+            print(curNode[0])
+            if self.inputChecker(input()):
+                return (curNode[0], self.play(curNode[1]), curNode[2])
+            else:
+                return (curNode[0], curNode[1], self.play(curNode[2]))
 
     def playRound(self) -> None:
         """
@@ -153,6 +193,7 @@ class TwentyQuestions:
         -----
         None
         """
+        self.currentTree = self.play(self.currentTree)
 
 
     def saveTree(self, node, treeFile) -> None:
@@ -166,6 +207,15 @@ class TwentyQuestions:
         treeFile : _io.TextIOWrapper
             The file object where the tree is to be saved.
         """
+        if node is None:
+            treeFile.write("None\n")
+        else:
+            if self.checkIfLeaf(node):
+                treeFile.write(f"Leaf\n{node[0]}\n")
+            else:
+                treeFile.write(f"Internal node\n{node[0]}\n")
+                self.saveTree(node[1], treeFile)
+                self.saveTree(node[2], treeFile)
 
     def saveGame(self, treeFileName) -> None:
         """
@@ -186,6 +236,8 @@ class TwentyQuestions:
             created or overwritten if it already exists.
 
         """
+        with open(treeFileName, "w") as treeFile:
+            self.saveTree(self.currentTree, treeFile)
 
 
     def loadTree(self, treeFile) -> tuple:
@@ -202,6 +254,13 @@ class TwentyQuestions:
         tuple
             The reconstructed binary tree.
         """
+        line = treeFile.readline().strip()
+        if line == "None":
+            return None
+        elif line == "Leaf":
+            return (treeFile.readline().strip(), None, None)
+        else:
+            return (treeFile.readline().strip(), self.loadTree(treeFile), self.loadTree(treeFile))
 
     def loadGame(self, treeFileName) -> None:
         """
@@ -219,6 +278,8 @@ class TwentyQuestions:
             previously saved decision tree.
 
         """
+        with open(treeFileName, "r") as treeFile:
+            self.currentTree = self.loadTree(treeFile)
 
 
     def printTree(self):
@@ -241,6 +302,43 @@ class TwentyQuestions:
                 prefix = prefix + '  '
             self._printTree(left, prefix, '+-', "Yes: ")
             self._printTree(right, prefix, '`-', "No:  ")
+
+def main():
+    """
+    The main function for the 20 Questions game. This function initializes the game,
+    allows the user to load a saved game, plays multiple rounds of the game, and
+    prompts the user to save the game state at the end.
+    """
+
+    print("Welcome to 20 Questions!")
+    game = TwentyQuestions()
+
+    # Check if the user wants to load a saved game
+    load = game.inputChecker(input("Do you want to load from a saved game? (Yes/No) "))
+    if load:
+        filename = input("Enter the name of the file: ").strip()
+        game.loadGame(filename)
+    else:
+        print("Starting a new game!")
+
+    # Start a loop to play multiple rounds
+    while True:
+        game.playRound()
+        print("Do you want to play again?")
+        if not game.inputChecker(input()): # If the user doesn't want to play again, break the loop
+            break
+    
+    # Check if the user wants to save the game
+    save = game.inputChecker(input("Do you want to save the game? (Yes/No) "))
+    if save:
+        filename = input("Enter the name of the file: ").strip()
+        game.saveGame(filename)
+        print(f"Game saved to {filename}")
+    print("Thanks for playing!")
+
+if __name__ == '__main__':
+    main()
+
 """
 ############################## Homework 20questions ##############################
 
@@ -254,13 +352,3 @@ class TwentyQuestions:
 
 %%% Please fill in the first 4 lines of this file with the appropriate information.
 """
-
-def main():
-    """DOCSTRING!"""
-    # Write the "main" function for 20 Questions here.  Although
-    # main() is traditionally placed at the top of a file, it is the
-    # last function you will write.
-
-
-if __name__ == '__main__':
-    main()
