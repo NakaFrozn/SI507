@@ -8,6 +8,7 @@ import requests
 import pandas as pd
 import re
 from collections import Counter
+import unittest
 
 random.seed(17)
 
@@ -125,10 +126,9 @@ class RedLines:
         Initializes the RedLines class without any districts.
         assign districts attribute to an empty list
         """
+        self.districts = []
         if cacheFile:
             self.loadCache(cacheFile)
-        else:
-            self.districts = []
 
     def createDistricts(self, fileName):
         """
@@ -230,6 +230,7 @@ class RedLines:
                     break
                 else:
                     response = requests.get(api, params)
+
     def fetch(self, params, colname = None):
             """
             Fetches data from the U.S. Census Bureau's API.
@@ -262,7 +263,7 @@ class RedLines:
                     print(response.status_code)
             
             data = pd.DataFrame(response_data[1:], columns=response_data[0])
-            data['tract_id'] = data['state'] + data['county'] + data['tract']
+            data['tract_id'] = data['county'] + data['tract']
             if colname:
                 data.rename(columns={data.columns[0]: colname}, inplace=True)
             return data
@@ -282,7 +283,7 @@ class RedLines:
         is not available or is negative, the median income is set to 0.
 
         """
-        params = {"get": "B06011_001E", "for": "tract:*", "in": "state:26"}
+        params = {"get": "B19013_001E", "for": "tract:*", "in": "state:26"}
         data = self.fetch(params, colname='medIncome')
         for district in self.districts:
             tract = district.censusTract
@@ -362,7 +363,8 @@ class RedLines:
             if income:
                 mean = round(np.mean(income))
                 median = round(np.median(income))
-                results.append([mean, median])
+                results.extend([mean, median])
+        #print(results)
         return results
 
 
@@ -482,7 +484,6 @@ class RedLines:
         """
 
         def _calcuate_percent(row):
-            #print(row['tract_id'], row['afam_pop'], row['total_pop'])
             if int(row['afam_pop']) == 0:
                 return 0
             elif int(row['total_pop']) == 0:
@@ -496,7 +497,6 @@ class RedLines:
         total_data = self.fetch(params, colname='total_pop')
         pop_data = pd.merge(afam_data, total_data, on='tract_id')
         pop_data['percent'] = pop_data.apply(_calcuate_percent, axis=1)
-
         for district in self.districts:
             district.percent = pop_data.loc[pop_data['tract_id'] == district.censusTract, 'percent'].values[0]
         
@@ -519,10 +519,18 @@ class RedLines:
         for district in sample:
             print(district.id, district.holcGrade, district.medIncome, district.censusTract, district.rank, district.percent)
 
+# Test your class implementation here
+# class UnitTest(unittest.TestCase):
+#     def setUp(self):
+#         return super().setUp()
+#     def test_Cache(self):
+#         myRedLines = RedLines("redlines_cache.json")
+#         self.assertTrue(isinstance(myRedLines.districts, list))
 
 # Use main function to test your class implementations.
 # Feel free to modify the example main function.
 def main():
+    # unittest.main()
     myRedLines = RedLines()
     myRedLines.createDistricts("redlines_data.json")
     myRedLines.plotDistricts()
@@ -533,11 +541,9 @@ def main():
     myRedLines.findCommonWords()
     myRedLines.calcRank()  # Assuming you have this method
     myRedLines.calcPopu()  # Assuming you have this method
-    #myRedLines.sample()
     myRedLines.cacheData("redlines_cache.json")
     myRedLines.loadCache("redlines_cache.json")
     myRedLines.comment()
-
 
 if __name__ == "__main__":
     main()
