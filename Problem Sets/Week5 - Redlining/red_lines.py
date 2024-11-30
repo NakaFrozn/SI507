@@ -8,6 +8,7 @@ import requests
 import pandas as pd
 import re
 from collections import Counter
+import unittest
 
 random.seed(17)
 
@@ -125,10 +126,9 @@ class RedLines:
         Initializes the RedLines class without any districts.
         assign districts attribute to an empty list
         """
+        self.districts = []
         if cacheFile:
             self.loadCache(cacheFile)
-        else:
-            self.districts = []
 
     def createDistricts(self, fileName):
         """
@@ -206,7 +206,7 @@ class RedLines:
             point = points[
                 random.choice(list(np.where(grid)[0]))
             ]  # randomly select a point within the district
-            #print(f"{district} : {point}")
+            # print(f"{district} : {point}")
             district.randomLat = point[1]
             district.randomLong = point[0]
 
@@ -230,42 +230,43 @@ class RedLines:
                     break
                 else:
                     response = requests.get(api, params)
-    def fetch(self, params, colname = None):
-            """
-            Fetches data from the U.S. Census Bureau's API.
 
-            This method sends a GET request to the specified API endpoint with the provided parameters.
-            If the request is successful, the method returns the JSON response. If the request fails,
-            the method retries the request until it is successful.
+    def fetch(self, params, colname=None):
+        """
+        Fetches data from the U.S. Census Bureau's API.
 
-            Parameters
-            ----------
-            params : dict
-                A dictionary containing the parameters to be sent with the request.
+        This method sends a GET request to the specified API endpoint with the provided parameters.
+        If the request is successful, the method returns the JSON response. If the request fails,
+        the method retries the request until it is successful.
 
-            Returns
-            -------
-            dict
-                A dictionary containing the JSON response from the API.
+        Parameters
+        ----------
+        params : dict
+            A dictionary containing the parameters to be sent with the request.
 
-            """
-            api = "https://api.census.gov/data/2018/acs/acs5"
-            key = "bff2ebd794e77fac281f258fe892bd1e36fe481b"
-            params["key"]=key
-            #print(params)
-            while True:
-                response = requests.get(api, params)
-                if response.status_code == 200:
-                    response_data = response.json()
-                    break
-                else:
-                    print(response.status_code)
-            
-            data = pd.DataFrame(response_data[1:], columns=response_data[0])
-            data['tract_id'] = data['state'] + data['county'] + data['tract']
-            if colname:
-                data.rename(columns={data.columns[0]: colname}, inplace=True)
-            return data
+        Returns
+        -------
+        dict
+            A dictionary containing the JSON response from the API.
+
+        """
+        api = "https://api.census.gov/data/2018/acs/acs5"
+        key = "bff2ebd794e77fac281f258fe892bd1e36fe481b"
+        params["key"] = key
+        # print(params)
+        while True:
+            response = requests.get(api, params)
+            if response.status_code == 200:
+                response_data = response.json()
+                break
+            else:
+                print(response.status_code)
+
+        data = pd.DataFrame(response_data[1:], columns=response_data[0])
+        data["tract_id"] = data["county"] + data["tract"]
+        if colname:
+            data.rename(columns={data.columns[0]: colname}, inplace=True)
+        return data
 
     def fetchIncome(self):
         """
@@ -282,19 +283,19 @@ class RedLines:
         is not available or is negative, the median income is set to 0.
 
         """
-        params = {"get": "B06011_001E", "for": "tract:*", "in": "state:26"}
-        data = self.fetch(params, colname='medIncome')
+        params = {"get": "B19013_001E", "for": "tract:*", "in": "state:26"}
+        data = self.fetch(params, colname="medIncome")
         for district in self.districts:
             tract = district.censusTract
             try:
-                income = int(data.loc[data['tract_id'] == tract, 'medIncome'])
+                income = int(data.loc[data["tract_id"] == tract, "medIncome"])
             except:
                 income = 0
             if income <= 0:
                 district.medIncome = 0
             else:
                 district.medIncome = income
-            #print(f"{district.id} : {district.medIncome}")
+            # print(f"{district.id} : {district.medIncome}")
 
     def cacheData(self, fileName):
         """
@@ -310,9 +311,8 @@ class RedLines:
             The name of the file where the district data will be saved.
         """
         districts_data = [district.__dict__ for district in self.districts]
-        with open(fileName, 'w') as f:
+        with open(fileName, "w") as f:
             json.dump(districts_data, f)
-
 
     def loadCache(self, fileName):
         """
@@ -330,7 +330,7 @@ class RedLines:
             True if the data was successfully loaded, False otherwise.
         """
         if os.path.exists(fileName):
-            with open(fileName, 'r') as f:
+            with open(fileName, "r") as f:
                 data = json.load(f)
             for district_data in data:
                 district = DetroitDistrict(**district_data)
@@ -355,16 +355,18 @@ class RedLines:
         list
             A list containing mean and median income values for each district grade in the order A, B, C, D.
         """
-        grades = ['A', 'B', 'C', 'D']
+        grades = ["A", "B", "C", "D"]
         results = []
         for grade in grades:
-            income = [district.medIncome for district in self.districts if district.holcGrade == grade]
+            income = [
+                district.medIncome for district in self.districts if district.holcGrade == grade
+            ]
             if income:
                 mean = round(np.mean(income))
                 median = round(np.median(income))
-                results.append([mean, median])
+                results.extend([mean, median])
+        print(results)
         return results
-
 
     def findCommonWords(self):
         """
@@ -395,24 +397,26 @@ class RedLines:
         filter_words = set(["the", "of", "and", "in", "to", "a", "is", "for", "on", "that"])
 
         # Store the words for each grade
-        words = {grade:[] for grade in ['A', 'B', 'C', 'D']}
+        words = {grade: [] for grade in ["A", "B", "C", "D"]}
         for district in self.districts:
             # Remove filter words, punctuation, numbers, and make all words lowercase
-            description_text = re.sub(r'\d+', '', district.description.lower())
-            description_text = re.sub(r'[^\w\s]', '', description_text)
+            description_text = re.sub(r"\d+", "", district.description.lower())
+            description_text = re.sub(r"[^\w\s]", "", description_text)
             description = [word for word in description_text.split() if word not in filter_words]
             words[district.holcGrade].append(description)
 
         # count the words for each grade
-        counts = {grade: Counter() for grade in ['A', 'B', 'C', 'D']}
-        for grade in ['A', 'B', 'C', 'D']:
+        counts = {grade: Counter() for grade in ["A", "B", "C", "D"]}
+        for grade in ["A", "B", "C", "D"]:
             for description in words[grade]:
-                counts[grade].update(description) # iterate through the list of description and count the words
-         
+                counts[grade].update(
+                    description
+                )  # iterate through the list of description and count the words
+
         # Find the 10 most common words for each grade and make sure they are unique across different lists
-        common_words = {grade:[] for grade in ['A', 'B', 'C', 'D']}
+        common_words = {grade: [] for grade in ["A", "B", "C", "D"]}
         used_words = set()
-        for grade in ['A', 'B', 'C', 'D']:
+        for grade in ["A", "B", "C", "D"]:
             for word, count in counts[grade].most_common():
                 if len(common_words[grade]) == 10:
                     break
@@ -421,12 +425,11 @@ class RedLines:
                 else:
                     common_words[grade].append(word)
                     used_words.add(word)
-        
+
         # change the dict to list of lists
-        result = [common_words[grade] for grade in ['A', 'B', 'C', 'D']]
+        result = [common_words[grade] for grade in ["A", "B", "C", "D"]]
         # print(result)
         return result
-
 
     def calcRank(self):
         """
@@ -453,9 +456,7 @@ class RedLines:
         sort_districts = sorted(self.districts, key=lambda x: x.medIncome, reverse=True)
         for rank, district in enumerate(sort_districts, 1):
             district.rank = rank
-        
-        
-    
+
     def calcPopu(self):
         """
         Fetches and calculates the percentage of Black or African American residents in each district.
@@ -482,25 +483,24 @@ class RedLines:
         """
 
         def _calcuate_percent(row):
-            #print(row['tract_id'], row['afam_pop'], row['total_pop'])
-            if int(row['afam_pop']) == 0:
+            if int(row["afam_pop"]) == 0:
                 return 0
-            elif int(row['total_pop']) == 0:
+            elif int(row["total_pop"]) == 0:
                 return 1
             else:
-                return round((int(row['afam_pop']) / int(row['total_pop'])), 2)
+                return round((int(row["afam_pop"]) / int(row["total_pop"])), 2)
 
         params = {"get": "B02001_003E", "for": f"tract:*", "in": f"state:26"}
-        afam_data = self.fetch(params, colname='afam_pop')
+        afam_data = self.fetch(params, colname="afam_pop")
         params["get"] = "B01001_001E"
-        total_data = self.fetch(params, colname='total_pop')
-        pop_data = pd.merge(afam_data, total_data, on='tract_id')
-        pop_data['percent'] = pop_data.apply(_calcuate_percent, axis=1)
-
+        total_data = self.fetch(params, colname="total_pop")
+        pop_data = pd.merge(afam_data, total_data, on="tract_id")
+        pop_data["percent"] = pop_data.apply(_calcuate_percent, axis=1)
         for district in self.districts:
-            district.percent = pop_data.loc[pop_data['tract_id'] == district.censusTract, 'percent'].values[0]
-        
-            
+            district.percent = pop_data.loc[
+                pop_data["tract_id"] == district.censusTract, "percent"
+            ].values[0]
+
     def comment(self):
         """
         Look at the
@@ -508,7 +508,13 @@ class RedLines:
         findings. And a few sentences(more than 50 words) about how this exercise did or did not change your understanding of
         residential segregation. Print you thought in the method.
         """
-        print("")
+        print(
+            """I calculated the average percent of ratio of African-American population and median income in each census tract
+            between which I found a significant negative correlation. The district graph presents a clearer pattern of residential 
+            segregation where African-American residents were more likely to reside in downtown area with lower median income, while
+            other residents were more likely to live in the suburbs with higher median income.
+            """
+        )
 
     def sample(self):
         """
@@ -517,12 +523,29 @@ class RedLines:
         # randomly selected 5 districts
         sample = random.sample(self.districts, 5)
         for district in sample:
-            print(district.id, district.holcGrade, district.medIncome, district.censusTract, district.rank, district.percent)
+            print(
+                district.id,
+                district.holcGrade,
+                district.medIncome,
+                district.censusTract,
+                district.rank,
+                district.percent,
+            )
+
+
+# Test your class implementation here
+# class UnitTest(unittest.TestCase):
+#     def setUp(self):
+#         return super().setUp()
+#     def test_Cache(self):
+#         myRedLines = RedLines("redlines_cache.json")
+#         self.assertTrue(isinstance(myRedLines.districts, list))
 
 
 # Use main function to test your class implementations.
 # Feel free to modify the example main function.
 def main():
+    # unittest.main()
     myRedLines = RedLines()
     myRedLines.createDistricts("redlines_data.json")
     myRedLines.plotDistricts()
@@ -533,7 +556,6 @@ def main():
     myRedLines.findCommonWords()
     myRedLines.calcRank()  # Assuming you have this method
     myRedLines.calcPopu()  # Assuming you have this method
-    #myRedLines.sample()
     myRedLines.cacheData("redlines_cache.json")
     myRedLines.loadCache("redlines_cache.json")
     myRedLines.comment()
